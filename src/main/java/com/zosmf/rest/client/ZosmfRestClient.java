@@ -9,14 +9,14 @@ import java.net.URI;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 import java.util.Base64;
+import java.util.Map;
 
 public class ZosmfRestClient {
 
-    public static final String X_CSRF_ZOSMF_HEADER = "X-CSRF-ZOSMF-HEADER";
-    public static final String TRUE = "true";
-    public static final String AUTHORIZATION = "Authorization";
-    public static final String GET_REQUEST = "GET";
-    public static final String PROTOCOL = "TLS";
+    private static final String X_CSRF_ZOSMF_HEADER = "X-CSRF-ZOSMF-HEADER";
+    private static final String AUTHORIZATION = "Authorization";
+    private static final String GET_REQUEST = "GET";
+    private static final String PROTOCOL = "TLS";
     private final String zosmfHost;
     private String user;
     private String password;
@@ -52,7 +52,7 @@ public class ZosmfRestClient {
         return "Basic " + Base64.getEncoder().encodeToString(credentials.getBytes());
     }
 
-    public ZosmfResponse executeGetRequest(String zosmfApi) throws Exception {
+    public ZosmfResponse executeGetRequest(String zosmfApi, Map<String, String> queryParameters, Map<String, String> requestHeaders) throws Exception {
         // Set default SSL socket factory
         HttpsURLConnection.setDefaultSSLSocketFactory(getInsecureSSLContext().getSocketFactory());
 
@@ -65,9 +65,7 @@ public class ZosmfRestClient {
         try {
             connection = (HttpsURLConnection) new URI(endpoint).toURL().openConnection();
             connection.setRequestMethod(GET_REQUEST);
-            connection.setRequestProperty(AUTHORIZATION, getAuthHeader());
-            connection.setRequestProperty(X_CSRF_ZOSMF_HEADER, TRUE);
-//        connection.setRequestProperty("Accept", "application/json");
+            setHeaders(connection, requestHeaders);
 
             ZosmfResponse zosmfResponse = new ZosmfResponse(connection.getResponseCode(), connection.getResponseMessage());
             StringBuilder responseBody = getResponseBody(connection);
@@ -78,6 +76,16 @@ public class ZosmfRestClient {
                 connection.disconnect();
             }
         }
+    }
+
+    private void setHeaders(HttpsURLConnection connection, Map<String, String> requestHeaders) {
+        if (requestHeaders != null && !requestHeaders.isEmpty()) {
+            for (Map.Entry<String, String> entry : requestHeaders.entrySet()) {
+                connection.setRequestProperty(entry.getKey(), entry.getValue());
+            }
+        }
+        connection.setRequestProperty(AUTHORIZATION, getAuthHeader());
+        connection.setRequestProperty(X_CSRF_ZOSMF_HEADER, Boolean.TRUE.toString());
     }
 
     private static StringBuilder getResponseBody(HttpsURLConnection connection) throws IOException {
