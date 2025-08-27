@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 class ZosmfRestClientTest {
-    private static final String ZOSMF_URL = System.getenv("ZOSMF_URL"); // z/OSMF URL
+    private static final String ZOSMF_URL = System.getenv("ZOSMF_URL");
     private static final String USER = System.getenv("ZOSMF_USER");
     private static final String PASSWORD = System.getenv("ZOSMF_PASSWORD");
 
